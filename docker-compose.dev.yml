@@ -1,0 +1,96 @@
+version: "2"
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: microservice-game-servers-pool
+    environment:
+      - APP_HOST=0.0.0.0
+      - APP_DEBUG=False
+      - APP_SERVER=none
+      - APP_CONFIG_PATH=./config.py
+      - MONGODB_USERNAME=user
+      - MONGODB_PASSWORD=password
+      - MONGODB_HOST=mongodb
+      - MONGODB_DATABASE=game_servers_pool
+      - SERVICE_HOST=microservice_auth
+      - SERVICE_PORT=8000
+      - WAIT_FOR_MONGODB=30
+      - WAIT_FOR_RABBITMQ=30
+      - WAIT_FOR_SERVICE=30
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./game-servers-pool:/app/
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - microservice_auth
+    networks:
+      - app-tier
+    tty: true
+
+  microservice_auth:
+    image: openmatchmaking/microservice-auth:0.1.2
+    environment:
+      - APP_HOST=0.0.0.0
+      - APP_SERVER=sanic
+      - APP_CONFIG_PATH=./config.py
+      - REDIS_HOST=redis
+      - MONGODB_USERNAME=user
+      - MONGODB_PASSWORD=password
+      - MONGODB_HOST=mongodb
+      - MONGODB_DATABASE=auth
+      - WAIT_FOR_MONGODB=30
+      - WAIT_FOR_REDIS=30
+      - WAIT_FOR_RABBITMQ=30
+    ports:
+      - "8001:8000"
+    tty: true
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    networks:
+    - app-tier
+
+  rabbitmq:
+    image: bitnami/rabbitmq:latest
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_USERNAME=user
+      - RABBITMQ_PASSWORD=password
+      - RABBITMQ_VHOST=vhost
+    networks:
+      - app-tier
+
+  mongodb:
+    image: bitnami/mongodb:3.7
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGODB_USERNAME=user
+      - MONGODB_PASSWORD=password
+      - MONGODB_DATABASE=auth
+      - MONGODB_ROOT_PASSWORD=root
+    networks:
+      - app-tier
+
+  redis:
+    image: bitnami/redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_EXTRA_FLAGS=--maxmemory 100mb
+    networks:
+      - app-tier
