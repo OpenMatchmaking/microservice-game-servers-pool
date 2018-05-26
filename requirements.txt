@@ -7,7 +7,7 @@ aioamqp==0.10.0
 umongo==0.15.0
 motor==1.2.1
 marshmallow==2.15.0
-sage-utils==0.5.1
+sage-utils==0.5.4
 
 pytest==3.4.0
 pytest-cov==2.5.1
