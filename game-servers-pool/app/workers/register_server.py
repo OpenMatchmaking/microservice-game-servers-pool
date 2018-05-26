@@ -1,8 +1,7 @@
 import json
-from uuid import uuid4
-
 
 from aioamqp import AmqpClosedConnection
+from bson import ObjectId
 from marshmallow import ValidationError
 from sanic_amqp_ext import AmqpWorker
 from sage_utils.constants import VALIDATION_ERROR
@@ -18,15 +17,15 @@ class RegisterServerWorker(AmqpWorker):
     def __init__(self, app, *args, **kwargs):
         super(RegisterServerWorker, self).__init__(app, *args, **kwargs)
         from app.game_servers.documents import GameServer
+        from app.game_servers.schemas import RegisterGameServerSchema
         self.game_server_document = GameServer
-        self.schema = GameServer.schema.as_marshmallow_schema()
+        self.schema = RegisterGameServerSchema
 
     async def validate_data(self, raw_data):
         try:
             data = json.loads(raw_data.strip())
         except json.decoder.JSONDecodeError:
             data = {}
-
         deserializer = self.schema()
         result = deserializer.load(data)
         if result.errors:
@@ -40,12 +39,12 @@ class RegisterServerWorker(AmqpWorker):
         except ValidationError as exc:
             return Response.from_error(VALIDATION_ERROR, exc.normalized_messages())
 
-        game_server_id = data.get('id', str(uuid4()))
+        object_id = ObjectId(data['id']) if 'id' in data.keys() else ObjectId()
         await self.game_server_document.collection.replace_one(
-            {'_id': game_server_id}, replacement=data, upsert=True
+            {'_id': object_id}, replacement=data, upsert=True
         )
 
-        return Response.with_content({'id': game_server_id})
+        return Response.with_content({'id': str(object_id)})
 
     async def process_request(self, channel, body, envelope, properties):
         response = await self.register_game_server(body)
