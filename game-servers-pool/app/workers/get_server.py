@@ -16,9 +16,9 @@ class GetServerWorker(AmqpWorker):
     def __init__(self, app, *args, **kwargs):
         super(GetServerWorker, self).__init__(app, *args, **kwargs)
         from app.game_servers.documents import GameServer
-        from app.game_servers.schemas import RequestGetServerSchema, GameServerSchema
+        from app.game_servers.schemas import RequestGetServerSchema, RetrieveGameServerSchema
         self.game_server_document = GameServer
-        self.schema = GameServerSchema
+        self.schema = RetrieveGameServerSchema
         self.request_schema = RequestGetServerSchema
 
     async def validate_data(self, raw_data):
@@ -46,12 +46,17 @@ class GetServerWorker(AmqpWorker):
                     {'available_slots': {'$gte': data['required_slots']}},
                     {"game_mode": data['game_mode']}
                 ]
-            }}
+            }},
+            {'$sample': {'size': 1}}
         ]
-        instance = await self.game_server_document.collection.aggregate(pipeline).limit(1)
+        result = await self.game_server_document.collection.aggregate(pipeline).to_list(1)
 
-        serializer = self.schema()
-        serialized_instance = serializer.dump(instance).data
+        if result:
+            instance = result[0]
+            serializer = self.schema()
+            serialized_instance = serializer.dump(instance).data
+        else:
+            serialized_instance = None
         return Response.with_content(serialized_instance)
 
     async def process_request(self, channel, body, envelope, properties):
