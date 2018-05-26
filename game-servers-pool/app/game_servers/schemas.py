@@ -1,4 +1,5 @@
-from marshmallow import Schema, fields, validate
+from bson import ObjectId
+from marshmallow import Schema, fields, validate, validates, ValidationError
 
 from app import app
 
@@ -23,12 +24,35 @@ class RequestGetServerSchema(Schema):
     )
 
 
-class GameServerSchema(GameServer.schema.as_marshmallow_schema()):
+class RegisterGameServerSchema(GameServer.schema.as_marshmallow_schema()):
+    id = fields.String(required=False)
+
+    @validates('id')
+    def validate_id(self, value):
+        if not ObjectId.is_valid(value):
+            raise ValidationError(
+                "'{}' is not a valid ObjectId, it must be a 12-byte "
+                "input or a 24-character hex string.".format(value)
+            )
+
+    class Meta:
+        model = GameServer
+        fields = (
+            'id',
+            'host',
+            'port',
+            'available_slots',
+            'credentials',
+            'game_mode',
+        )
+
+
+class RetrieveGameServerSchema(GameServer.schema.as_marshmallow_schema()):
 
     class Meta:
         model = GameServer
         fields = (
             'host',
             'port',
-            'credentials'
+            'credentials',
         )
