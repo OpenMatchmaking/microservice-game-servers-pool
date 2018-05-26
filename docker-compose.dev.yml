@@ -47,7 +47,7 @@ services:
       - MONGODB_USERNAME=user
       - MONGODB_PASSWORD=password
       - MONGODB_HOST=mongodb
-      - MONGODB_DATABASE=auth
+      - MONGODB_DATABASE=game_servers_pool
       - WAIT_FOR_MONGODB=30
       - WAIT_FOR_REDIS=30
       - WAIT_FOR_RABBITMQ=30
@@ -80,7 +80,7 @@ services:
     environment:
       - MONGODB_USERNAME=user
       - MONGODB_PASSWORD=password
-      - MONGODB_DATABASE=auth
+      - MONGODB_DATABASE=game_servers_pool
       - MONGODB_ROOT_PASSWORD=root
     networks:
       - app-tier
