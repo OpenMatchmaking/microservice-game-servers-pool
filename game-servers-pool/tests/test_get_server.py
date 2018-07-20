@@ -203,7 +203,7 @@ async def test_worker_returns_a_validation_error_for_missing_fields(sanic_server
         assert error[Response.ERROR_DETAILS_FIELD_NAME][field][0] == 'Missing data for ' \
                                                                      'required field.'
 
-    servers_count = await GameServer.collection.find().count()
+    servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 0
 
     await GameServer.collection.delete_many({})

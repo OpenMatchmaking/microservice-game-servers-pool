@@ -42,7 +42,7 @@ async def test_worker_returns_a_validation_error_for_missing_fields(sanic_server
         assert error[Response.ERROR_DETAILS_FIELD_NAME][field][0] == 'Missing data for ' \
                                                                      'required field.'
 
-    servers_count = await GameServer.collection.find().count()
+    servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 0
 
     await GameServer.collection.delete_many({})
@@ -76,7 +76,7 @@ async def test_worker_registers_a_new_server_successfully(sanic_server):
     assert len(content.keys()) == 1
     assert 'id' in content.keys()
 
-    servers_count = await GameServer.collection.find().count()
+    servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 1
 
     await GameServer.collection.delete_many({})
@@ -121,7 +121,7 @@ async def test_worker_updates_a_new_server_successfully(sanic_server):
     assert len(content.keys()) == 1
     assert 'id' in content.keys()
 
-    servers_count = await GameServer.collection.find().count()
+    servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 1
 
     await GameServer.collection.delete_many({})
@@ -155,7 +155,7 @@ async def test_worker_returns_a_validation_error_for_invalid_data(sanic_server):
         assert error[Response.ERROR_DETAILS_FIELD_NAME][field][0] == 'Missing data for ' \
                                                                      'required field.'
 
-    servers_count = await GameServer.collection.find().count()
+    servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 0
 
     await GameServer.collection.delete_many({})
@@ -201,7 +201,7 @@ async def test_worker_returns_a_validation_error_for_invalid_id(sanic_server):
                                                                 "input or a 24-character hex " \
                                                                 "string."
 
-    servers_count = await GameServer.collection.find().count()
+    servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 0
 
     await GameServer.collection.delete_many({})
