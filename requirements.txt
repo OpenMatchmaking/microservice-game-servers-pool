@@ -1,15 +1,15 @@
 sanic==0.7.0
 sanic-script==0.3
 sanic-mongodb-extension==0.2.0
-sanic-amqp-extension==0.1.0
+sanic-amqp-extension==0.1.1
 
-aioamqp==0.10.0
+aioamqp==0.11.0
 umongo==0.15.0
 motor==2.0.0
 marshmallow==2.15.0
-sage-utils==0.5.4
+sage-utils==0.5.5
 
-pytest==3.4.0
+pytest==3.6.3
 pytest-cov==2.5.1
 pytest-sanic==0.1.9
 
