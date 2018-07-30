@@ -43,8 +43,8 @@ class GetServerWorker(AmqpWorker):
         pipeline = [
             {'$match': {
                 '$and': [
-                    {'available_slots': {'$gte': data['required_slots']}},
-                    {"game_mode": data['game_mode']}
+                    {'available_slots': {'$gte': data['required-slots']}},
+                    {"game_mode": data['game-mode']}
                 ]
             }},
             {'$sample': {'size': 1}}

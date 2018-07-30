@@ -36,7 +36,7 @@ async def test_worker_returns_a_validation_error_for_missing_fields(sanic_server
     assert Response.ERROR_DETAILS_FIELD_NAME in error.keys()
     assert len(error[Response.ERROR_DETAILS_FIELD_NAME]) == 4
 
-    for field in ['host', 'port', 'available_slots', 'game_mode']:
+    for field in ['host', 'port', 'available-slots', 'game-mode']:
         assert field in error[Response.ERROR_DETAILS_FIELD_NAME]
         assert len(error[Response.ERROR_DETAILS_FIELD_NAME][field]) == 1
         assert error[Response.ERROR_DETAILS_FIELD_NAME][field][0] == 'Missing data for ' \
@@ -62,11 +62,11 @@ async def test_worker_registers_a_new_server_successfully(sanic_server):
     response = await client.send(payload={
         'host': '127.0.0.1',
         'port': 9000,
-        'available_slots': 100,
+        'available-slots': 100,
         'credentials': {
             'token': 'super_secret_token'
         },
-        'game_mode': '1v1'
+        'game-mode': '1v1'
     })
 
     assert Response.EVENT_FIELD_NAME in response.keys()
@@ -102,7 +102,7 @@ async def test_worker_updates_a_new_server_successfully(sanic_server):
     update_data = deepcopy(create_data)
     update_data.update({
         'id': str(game_server.id),
-        'available_slots': 80
+        'available-slots': 80
     })
 
     client = RpcAmqpClient(
@@ -149,7 +149,7 @@ async def test_worker_returns_a_validation_error_for_invalid_data(sanic_server):
     assert Response.ERROR_DETAILS_FIELD_NAME in error.keys()
     assert len(error[Response.ERROR_DETAILS_FIELD_NAME]) == 4
 
-    for field in ['host', 'port', 'available_slots', 'game_mode']:
+    for field in ['host', 'port', 'available-slots', 'game-mode']:
         assert field in error[Response.ERROR_DETAILS_FIELD_NAME]
         assert len(error[Response.ERROR_DETAILS_FIELD_NAME][field]) == 1
         assert error[Response.ERROR_DETAILS_FIELD_NAME][field][0] == 'Missing data for ' \
@@ -169,11 +169,11 @@ async def test_worker_returns_a_validation_error_for_invalid_id(sanic_server):
         'id': "INVALID_ID",
         'host': '127.0.0.1',
         'port': 9000,
-        'available_slots': 100,
+        'available-slots': 100,
         'credentials': {
             'token': 'super_secret_token'
         },
-        'game_mode': '1v1'
+        'game-mode': '1v1'
     }
 
     client = RpcAmqpClient(
@@ -200,6 +200,52 @@ async def test_worker_returns_a_validation_error_for_invalid_id(sanic_server):
                                                                 "ObjectId, it must be a 12-byte " \
                                                                 "input or a 24-character hex " \
                                                                 "string."
+
+    servers_count = await GameServer.collection.count_documents({})
+    assert servers_count == 0
+
+    await GameServer.collection.delete_many({})
+
+
+@pytest.mark.asyncio
+async def test_worker_returns_a_validation_error_for_invalid_host_and_port(sanic_server):
+    await GameServer.collection.delete_many({})
+
+    create_data = {
+        'host': '',
+        'port': -1,
+        'available-slots': 100,
+        'credentials': {
+            'token': 'super_secret_token'
+        },
+        'game-mode': '1v1'
+    }
+
+    client = RpcAmqpClient(
+        sanic_server.app,
+        routing_key=REQUEST_QUEUE,
+        request_exchange=REQUEST_EXCHANGE,
+        response_queue='',
+        response_exchange=RESPONSE_EXCHANGE
+    )
+    response = await client.send(payload=create_data)
+
+    assert Response.ERROR_FIELD_NAME in response.keys()
+    error = response[Response.ERROR_FIELD_NAME]
+
+    assert Response.ERROR_TYPE_FIELD_NAME in error.keys()
+    assert error[Response.ERROR_TYPE_FIELD_NAME] == VALIDATION_ERROR
+
+    assert Response.ERROR_DETAILS_FIELD_NAME in error.keys()
+    assert len(error[Response.ERROR_DETAILS_FIELD_NAME]) == 2
+
+    assert 'host' in error[Response.ERROR_DETAILS_FIELD_NAME]
+    assert len(error[Response.ERROR_DETAILS_FIELD_NAME]['host']) == 1
+    assert error[Response.ERROR_DETAILS_FIELD_NAME]['host'][0] == "Field cannot be blank."
+
+    assert 'port' in error[Response.ERROR_DETAILS_FIELD_NAME]
+    assert len(error[Response.ERROR_DETAILS_FIELD_NAME]['port']) == 1
+    assert error[Response.ERROR_DETAILS_FIELD_NAME]['port'][0] == "Field must have a positive value."
 
     servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 0
