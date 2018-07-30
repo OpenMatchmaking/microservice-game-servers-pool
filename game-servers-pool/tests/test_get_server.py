@@ -44,8 +44,8 @@ async def test_worker_returns_one_existing_server_for_one_server_in_list(sanic_s
         response_exchange=RESPONSE_EXCHANGE
     )
     response = await client.send(payload={
-        'required_slots': 20,
-        'game_mode': "1v1"
+        'required-slots': 20,
+        'game-mode': "1v1"
     })
 
     assert Response.EVENT_FIELD_NAME in response.keys()
@@ -104,8 +104,8 @@ async def test_worker_returns_a_random_server_from_a_list(sanic_server):
         response_exchange=RESPONSE_EXCHANGE
     )
     response = await client.send(payload={
-        'required_slots': 10,
-        'game_mode': 'team-deathmatch'
+        'required-slots': 10,
+        'game-mode': 'team-deathmatch'
     })
 
     assert Response.EVENT_FIELD_NAME in response.keys()
@@ -137,8 +137,8 @@ async def test_worker_returns_none_for_an_empty_list_of_servers(sanic_server):
         response_exchange=RESPONSE_EXCHANGE
     )
     response = await client.send(payload={
-        'required_slots': 10,
-        'game_mode': 'team-deathmatch'
+        'required-slots': 10,
+        'game-mode': 'team-deathmatch'
     })
 
     assert Response.EVENT_FIELD_NAME in response.keys()
@@ -162,8 +162,8 @@ async def test_worker_returns_none_for_an_non_existing_server_type(sanic_server)
         response_exchange=RESPONSE_EXCHANGE
     )
     response = await client.send(payload={
-        'required_slots': 10,
-        'game_mode': 'battle-royal'
+        'required-slots': 10,
+        'game-mode': 'battle-royal'
     })
 
     assert Response.EVENT_FIELD_NAME in response.keys()
@@ -197,7 +197,7 @@ async def test_worker_returns_a_validation_error_for_missing_fields(sanic_server
     assert Response.ERROR_DETAILS_FIELD_NAME in error.keys()
     assert len(error[Response.ERROR_DETAILS_FIELD_NAME]) == 2
 
-    for field in ['required_slots', 'game_mode']:
+    for field in ['required-slots', 'game-mode']:
         assert field in error[Response.ERROR_DETAILS_FIELD_NAME]
         assert len(error[Response.ERROR_DETAILS_FIELD_NAME][field]) == 1
         assert error[Response.ERROR_DETAILS_FIELD_NAME][field][0] == 'Missing data for ' \
