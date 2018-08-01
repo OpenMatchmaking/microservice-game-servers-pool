@@ -56,7 +56,6 @@ class RegisterGameServerSchema(Schema):
         ]
     )
     available_slots = fields.Integer(
-        attribute="available-slots",
         load_from="available-slots",
         allow_none=False,
         required=True,
@@ -65,7 +64,6 @@ class RegisterGameServerSchema(Schema):
         ]
     )
     game_mode = fields.String(
-        attribute="game-mode",
         load_from="game-mode",
         required=True,
         allow_none=False,

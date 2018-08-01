@@ -47,17 +47,28 @@ class GetServerWorker(AmqpWorker):
                     {"game_mode": data['game-mode']}
                 ]
             }},
-            {'$sample': {'size': 1}}
+            {'$sample': {'size': 1}},
+            {'$addFields': {
+                "available_slots": {
+                    "$subtract": ["$available_slots", data['required-slots']]
+                }
+            }}
         ]
         result = await self.game_server_document.collection.aggregate(pipeline).to_list(1)
 
         if result:
-            instance = result[0]
+            document_updated_data = result[0]
+            document_id = document_updated_data.pop('_id')
+            await self.game_server_document.collection.update_one(
+                {'_id': document_id},
+                {'$set': document_updated_data}
+            )
+
             serializer = self.schema()
-            serialized_instance = serializer.dump(instance).data
+            document = serializer.dump(document_updated_data).data
         else:
-            serialized_instance = None
-        return Response.with_content(serialized_instance)
+            document = None
+        return Response.with_content(document)
 
     async def process_request(self, channel, body, envelope, properties):
         response = await self.get_game_server(body)

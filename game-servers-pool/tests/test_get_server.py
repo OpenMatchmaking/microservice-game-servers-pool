@@ -79,7 +79,7 @@ async def test_worker_returns_a_random_server_from_a_list(sanic_server):
         {
             'host': '127.0.0.1',
             'port': 9001,
-            'available_slots': 50,
+            'available_slots': 100,
             'credentials': {
                 'token': 'super_secret_token2'
             },
@@ -88,7 +88,7 @@ async def test_worker_returns_a_random_server_from_a_list(sanic_server):
         {
             'host': '127.0.0.1',
             'port': 9002,
-            'available_slots': 10,
+            'available_slots': 100,
             'credentials': {
                 'token': 'super_secret_token3'
             },
@@ -121,6 +121,9 @@ async def test_worker_returns_a_random_server_from_a_list(sanic_server):
     assert content['host'] == extracted_server.host
     assert content['port'] == extracted_server.port
     assert content['credentials'] == extracted_server.credentials
+
+    updated_servers = await GameServer.collection.count_documents({"available_slots": 90})
+    assert updated_servers == 1
 
     await GameServer.collection.delete_many({})
 
@@ -205,5 +208,54 @@ async def test_worker_returns_a_validation_error_for_missing_fields(sanic_server
 
     servers_count = await GameServer.collection.count_documents({})
     assert servers_count == 0
+
+    await GameServer.collection.delete_many({})
+
+
+@pytest.mark.asyncio
+async def test_worker_returns_a_validation_error_for_missing_fields(sanic_server):
+    await GameServer.collection.delete_many({})
+
+    objects = await create_game_servers([
+        {
+            'host': '127.0.0.1',
+            'port': 9000,
+            'available_slots': 100,
+            'credentials': {
+                'token': 'super_secret_token'
+            },
+            'game_mode': 'team-deathmatch'
+        }
+    ])
+    game_server = objects[0]
+
+    client = RpcAmqpClient(
+        sanic_server.app,
+        routing_key=REQUEST_QUEUE,
+        request_exchange=REQUEST_EXCHANGE,
+        response_queue='',
+        response_exchange=RESPONSE_EXCHANGE
+    )
+    response = await client.send(payload={
+        'required-slots': 10,
+        'game-mode': 'team-deathmatch'
+    })
+
+    assert Response.EVENT_FIELD_NAME in response.keys()
+    assert Response.CONTENT_FIELD_NAME in response.keys()
+    content = response[Response.CONTENT_FIELD_NAME]
+
+    assert len(list(content.keys())) == 3
+    assert set(content.keys()) == {'host', 'port', 'credentials'}
+
+    filter_func = lambda obj: obj.host == content['host'] and obj.port == content['port']  # NOQA
+    extracted_server = list(filter(filter_func, objects))[0]
+
+    assert content['host'] == extracted_server.host
+    assert content['port'] == extracted_server.port
+    assert content['credentials'] == extracted_server.credentials
+
+    game_server = await GameServer.find_one({"_id": game_server["id"]})
+    assert game_server.available_slots == 90
 
     await GameServer.collection.delete_many({})
