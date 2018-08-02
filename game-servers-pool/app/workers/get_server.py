@@ -9,7 +9,7 @@ from sage_utils.wrappers import Response
 
 class GetServerWorker(AmqpWorker):
     QUEUE_NAME = 'game-servers-pool.server.retrieve'
-    REQUEST_EXCHANGE_NAME = 'open-matchmaking.direct'
+    REQUEST_EXCHANGE_NAME = 'open-matchmaking.game-server-pool.server.retrieve.direct'
     RESPONSE_EXCHANGE_NAME = 'open-matchmaking.responses.direct'
     CONTENT_TYPE = 'application/json'
 
