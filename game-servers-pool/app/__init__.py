@@ -3,7 +3,7 @@ from sanic.response import text
 from sanic_mongodb_ext import MongoDbExtension
 from sanic_amqp_ext import AmqpExtension
 
-from app.workers import GetServerWorker, RegisterServerWorker
+from app.workers import GetServerWorker, RegisterServerWorker, UpdateServerWorker
 
 
 app = Sanic('microservice-auth')
@@ -17,7 +17,7 @@ MongoDbExtension(app)
 # RabbitMQ workers
 app.amqp.register_worker(GetServerWorker(app))
 app.amqp.register_worker(RegisterServerWorker(app))
-
+app.amqp.register_worker(UpdateServerWorker(app))
 
 # Public API
 async def health_check(request):
