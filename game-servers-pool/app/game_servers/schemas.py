@@ -27,11 +27,15 @@ class RequestGetServerSchema(Schema):
         ]
     )
 
+    class Meta:
+        ordered = True
+
 
 class RetrieveGameServerSchema(GameServer.schema.as_marshmallow_schema()):
 
     class Meta:
         model = GameServer
+        ordered = True
         fields = (
             'host',
             'port',
@@ -87,6 +91,7 @@ class RegisterGameServerSchema(Schema):
 
     class Meta:
         model = GameServer
+        ordered = True
         fields = (
             'id',
             'host',
@@ -94,4 +99,52 @@ class RegisterGameServerSchema(Schema):
             'available_slots',
             'credentials',
             'game_mode',
+        )
+
+
+class UpdateGameServerSchema(Schema):
+    id = fields.String(
+        required=True
+    )
+    freed_slots = fields.Integer(
+        load_from="freed-slots",
+        allow_none=False,
+        required=True,
+        validate=[
+            validate.Range(min=1, error="The value must be positive integer.")
+        ]
+    )
+
+    @validates('id')
+    def validate_id(self, value):
+        if not ObjectId.is_valid(value):
+            raise ValidationError(
+                "'{}' is not a valid ObjectId, it must be a 12-byte "
+                "input or a 24-character hex string.".format(value)
+            )
+
+    class Meta:
+        model = GameServer
+        ordered = True
+        fields = (
+            'id',
+            'freed_slots',
+        )
+
+
+class SimpleGameServerSchema(Schema):
+    id = fields.String(
+        dump_only=True
+    )
+    available_slots = fields.Integer(
+        dump_only=True,
+        dump_to="available-slots",
+    )
+
+    class Meta:
+        model = GameServer
+        ordered = True
+        fields = (
+            'id',
+            'available_slots',
         )
