@@ -6,7 +6,7 @@ from sanic_amqp_ext import AmqpExtension
 from app.workers import GetServerWorker, RegisterServerWorker, UpdateServerWorker
 
 
-app = Sanic('microservice-auth')
+app = Sanic('microservice-game-servers-pool')
 app.config.from_envvar('APP_CONFIG_PATH')
 
 
