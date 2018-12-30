@@ -4,7 +4,7 @@ sanic-mongodb-extension==0.2.2
 sanic-amqp-extension==0.1.2
 
 aioamqp==0.12.0
-umongo==0.15.0
+umongo==1.0.0
 motor==2.0.0
 marshmallow==2.17.0
 sage-utils==0.5.6
