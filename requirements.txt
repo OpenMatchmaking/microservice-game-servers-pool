@@ -9,7 +9,7 @@ motor==2.0.0
 marshmallow==2.17.0
 sage-utils==0.5.6
 
-pytest==3.6.3
+pytest==4.0.2
 pytest-cov==2.6.0
 pytest-sanic==0.1.15
 
