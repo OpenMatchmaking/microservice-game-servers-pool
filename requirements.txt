@@ -11,6 +11,6 @@ sage-utils==0.5.6
 
 pytest==4.3.0
 pytest-cov==2.6.1
-pytest-sanic==0.1.15
+pytest-sanic==1.0.0
 
 flake8==3.7.7
